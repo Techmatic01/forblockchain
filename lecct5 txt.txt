@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.22;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract SimpleToken is ERC20 {
+    constructor(address owner) ERC20("SimpleToken", "STK") {
+        _mint(owner, 500 * 10 ** decimals());
+    }
+}
+
+contract BasicStaking {
+    SimpleToken public token;
+    mapping(address => uint256) public staked;
+
+    constructor(address tokenAddress) {
+        token = SimpleToken(tokenAddress);
+    }
+
+    function stake() public {
+        uint256 amount = 100 * 10 ** 18;
+        require(token.transferFrom(msg.sender, address(this), amount), "Stake failed");
+        staked[msg.sender] += amount;
+    }
+
+    function unstake() public {
+        uint256 amount = staked[msg.sender];
+        require(amount > 0, "No tokens to unstake");
+        staked[msg.sender] = 0;
+        require(token.transfer(msg.sender, amount), "Unstake failed");
+    }
+}
